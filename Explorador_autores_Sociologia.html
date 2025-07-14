@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Teoría Sociológica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .prose-custom {
+            color: #374151; /* gray-700 */
+        }
+        .prose-custom h3 {
+            color: #111827; /* gray-900 */
+            font-weight: 600;
+        }
+        .prose-custom b {
+            color: #1f2937; /* gray-800 */
+        }
+        .main-content {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 main-content">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Explorador de Teoría Sociológica</h1>
+            <p class="mt-2 text-lg text-gray-600">Selecciona una corriente y explora las ideas de sus autores clave.</p>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Columna de Controles -->
+            <aside class="lg:w-1/3 bg-white p-6 rounded-xl shadow-md h-fit">
+                <h2 class="text-xl font-semibold mb-4">Configuración</h2>
+
+                <!-- Campo para la Clave de API -->
+                <div class="mb-6">
+                    <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Clave de API de Google AI</label>
+                    <input type="password" id="api-key-input" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" placeholder="Pega tu clave aquí">
+                    <p class="mt-1 text-xs text-gray-500">
+                        Necesitas una clave para usar la IA. Consíguela gratis en 
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>.
+                    </p>
+                </div>
+                
+                <h2 class="text-xl font-semibold mb-4 border-t pt-4">Controles</h2>
+                
+                <!-- Selector de Corriente Teórica -->
+                <div>
+                    <label for="theory-select" class="block text-sm font-medium text-gray-700 mb-2">1. Elige una Corriente Teórica:</label>
+                    <select id="theory-select" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option selected disabled>Selecciona una opción</option>
+                    </select>
+                </div>
+
+                <!-- Lista de Autores -->
+                <div id="authors-container" class="mt-6 hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">2. Selecciona los Autores:</label>
+                    <div id="authors-list" class="space-y-2 max-h-60 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+                        <!-- Los autores se insertarán aquí dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Botón de Generación -->
+                <div class="mt-6">
+                     <button id="generate-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-300" disabled>
+                        Generar Resumen
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Columna de Resultados -->
+            <main class="lg:w-2/3">
+                <div id="results-container" class="bg-white p-6 rounded-xl shadow-md min-h-[400px] flex flex-col">
+                    <div id="placeholder" class="text-center text-gray-500 flex flex-col justify-center items-center h-full flex-grow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <h3 class="text-lg font-semibold">Los resúmenes de los autores aparecerán aquí.</h3>
+                        <p>Primero, introduce tu Clave de API para activar la aplicación.</p>
+                    </div>
+                    <div id="loader" class="text-center text-gray-500 flex-col justify-center items-center h-full flex-grow hidden">
+                         <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="mt-4 text-lg font-semibold">Generando resúmenes... Esto puede tardar unos segundos.</p>
+                    </div>
+                    <div id="output" class="prose-custom max-w-none">
+                        <!-- El contenido generado se insertará aquí -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <footer class="text-center p-4 mt-8 text-sm text-gray-500">
+        <p>Desarrollado por <strong>Ruben Aroca Jácome</strong> con el apoyo de <strong>Gemini</strong>. 2024</p>
+    </footer>
+
+
+    <script type="module">
+        // --- Base de Datos de Sociólogos ---
+        const theoryGroups = {
+            "Colaboradores del Proyecto": ["Ruben Aroca Jácome (con soporte de Gemini)"],
+            "Teoría Clásica": ["Montesquieu", "Auguste Comte", "Karl Marx", "Émile Durkheim", "Max Weber", "Harriet Martineau", "Georg Simmel"],
+            "Funcionalismo Estructural": ["Talcott Parsons", "Robert K. Merton", "Niklas Luhmann"],
+            "Teoría del Conflicto": ["Karl Marx", "C. Wright Mills", "Ralf Dahrendorf", "Lewis A. Coser"],
+            "Interaccionismo Simbólico": ["George Herbert Mead", "Herbert Blumer", "Erving Goffman", "Charles Horton Cooley"],
+            "Teoría Crítica (Escuela de Frankfurt)": ["Max Horkheimer", "Theodor Adorno", "Herbert Marcuse", "Jürgen Habermas", "Erich Fromm"],
+            "Estructuralismo y Post-estructuralismo": ["Claude Lévi-Strauss", "Michel Foucault", "Pierre Bourdieu", "Jacques Derrida"],
+            "Etnometodología": ["Harold Garfinkel"],
+            "Teoría Feminista": ["Simone de Beauvoir", "Dorothy Smith", "Patricia Hill Collins", "bell hooks"],
+            "Teoría de la Modernidad y Postmodernidad": ["Anthony Giddens", "Zygmunt Bauman", "Jean Baudrillard", "Jean-François Lyotard"],
+            "Teoría de los Sistemas Mundiales": ["Immanuel Wallerstein"],
+            "Fenomenología Sociológica": ["Alfred Schutz"],
+            "Sociología Global": ["Saskia Sassen", "Ulrich Beck"]
+        };
+
+        // --- Elementos del DOM ---
+        const apiKeyInput = document.getElementById('api-key-input');
+        const theorySelect = document.getElementById('theory-select');
+        const authorsContainer = document.getElementById('authors-container');
+        const authorsList = document.getElementById('authors-list');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const placeholder = document.getElementById('placeholder');
+        const loader = document.getElementById('loader');
+        const output = document.getElementById('output');
+
+        // --- Lógica de la Aplicación ---
+
+        // Activar/desactivar el botón de generar basado en la clave de API
+        apiKeyInput.addEventListener('input', () => {
+            if (apiKeyInput.value.trim() !== '') {
+                generateBtn.disabled = false;
+                placeholder.querySelector('p').textContent = 'Comienza por seleccionar una corriente teórica y luego elige a los autores que te interesan.';
+            } else {
+                generateBtn.disabled = true;
+                placeholder.querySelector('p').textContent = 'Primero, introduce tu Clave de API para activar la aplicación.';
+            }
+        });
+
+        // 1. Poblar el selector de teorías
+        function populateTheories() {
+            const theories = Object.keys(theoryGroups);
+            theories.forEach(theory => {
+                const option = document.createElement('option');
+                option.value = theory;
+                option.textContent = theory;
+                theorySelect.appendChild(option);
+            });
+        }
+
+        // 2. Actualizar la lista de autores cuando se selecciona una teoría
+        theorySelect.addEventListener('change', () => {
+            const selectedTheory = theorySelect.value;
+            const authors = theoryGroups[selectedTheory] || [];
+            
+            authorsList.innerHTML = ''; // Limpiar lista anterior
+            
+            if (authors.length > 0) {
+                authors.forEach(author => {
+                    const div = document.createElement('div');
+                    div.classList.add('flex', 'items-center');
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `author-${author.replace(/\s+/g, '-')}`;
+                    checkbox.name = 'authors';
+                    checkbox.value = author;
+                    checkbox.classList.add('h-4', 'w-4', 'text-blue-600', 'border-gray-300', 'rounded', 'focus:ring-blue-500');
+
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.textContent = author;
+                    label.classList.add('ml-3', 'block', 'text-sm', 'text-gray-700');
+                    
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+                    authorsList.appendChild(div);
+                });
+                authorsContainer.classList.remove('hidden');
+            } else {
+                authorsContainer.classList.add('hidden');
+            }
+        });
+
+        // 3. Generar el resumen al hacer clic en el botón
+        generateBtn.addEventListener('click', async () => {
+            const selectedAuthors = Array.from(document.querySelectorAll('input[name="authors"]:checked')).map(cb => cb.value);
+            
+            const existingAlert = document.getElementById('selection-alert');
+            if(existingAlert) existingAlert.remove();
+
+            if (selectedAuthors.length === 0) {
+                const alertMsg = document.createElement('div');
+                alertMsg.id = 'selection-alert';
+                alertMsg.className = 'bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded-md';
+                alertMsg.setAttribute('role', 'alert');
+                alertMsg.innerHTML = '<p class="font-bold">Advertencia</p><p>Por favor, selecciona al menos un autor.</p>';
+                resultsContainer.insertBefore(alertMsg, resultsContainer.firstChild);
+                return;
+            }
+
+            placeholder.classList.add('hidden');
+            output.innerHTML = '';
+            loader.classList.remove('hidden');
+            generateBtn.disabled = true;
+
+            try {
+                let fullReport = '';
+                for (const author of selectedAuthors) {
+                    if (author === 'Ruben Aroca Jácome (con soporte de Gemini)') {
+                        const customHtml = `
+                            <div class="prose-custom">
+                                <h3>Ruben Aroca Jácome (con soporte de Gemini)</h3>
+                                <p>Este explorador de teoría sociológica fue desarrollado por <b>Ruben Aroca Jácome</b>, basándose en un programa inicial y ampliándolo con el apoyo de <b>Gemini</b>, un modelo de lenguaje grande de Google. La colaboración resultó en una aplicación web interactiva que facilita el estudio y la exploración de las principales corrientes y autores de la sociología.</p>
+                                <p>Ruben Aroca concibió la estructura y la funcionalidad, mientras que Gemini ayudó a expandir la base de datos de autores, generar contenido dinámico y refinar el código para crear una experiencia de usuario fluida y educativa.</p>
+                            </div>
+                        `;
+                        fullReport += customHtml;
+                        continue;
+                    }
+                    
+                    const prompt = `Proporciona un resumen conciso (aproximadamente 150-200 palabras) sobre el sociólogo ${author}. Enfócate en sus contribuciones teóricas más importantes, conceptos clave y su influencia en la sociología. El resumen debe estar en español y formateado en HTML con un encabezado <h3> para el nombre del autor y párrafos <p> para el contenido.`;
+                    
+                    const summaryHtml = await generateText(prompt);
+                    fullReport += summaryHtml;
+                }
+                output.innerHTML = fullReport;
+
+            } catch (error) {
+                console.error('Error al generar el resumen:', error);
+                output.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+            } finally {
+                loader.classList.add('hidden');
+                if (apiKeyInput.value.trim() !== '') {
+                    generateBtn.disabled = false;
+                }
+            }
+        });
+        
+        // 4. Función para llamar a la API de Gemini
+        async function generateText(prompt) {
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                throw new Error("La Clave de API no puede estar vacía.");
+            }
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: prompt }]
+                }],
+                generationConfig: {
+                    temperature: 0.5,
+                    topK: 1,
+                    topP: 1,
+                    maxOutputTokens: 8192,
+                },
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                ]
+            };
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    let errorBody;
+                    try {
+                        errorBody = await response.json();
+                    } catch (e) {
+                        errorBody = { error: { message: await response.text() } };
+                    }
+                    
+                    let errorDetails = `Error ${response.status}: ${response.statusText}.`;
+                    if (errorBody?.error?.message) {
+                       errorDetails += ` Detalles: ${errorBody.error.message}`;
+                    }
+                    throw new Error(errorDetails);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                    let text = result.candidates[0].content.parts[0].text;
+                    text = text.replace(/```html/g, '').replace(/```/g, '');
+                    return text;
+                } else {
+                    let reason = "No se recibió contenido del candidato.";
+                    if (result.candidates && result.candidates[0]?.finishReason) {
+                        reason = `La generación se detuvo por la siguiente razón: ${result.candidates[0].finishReason}.`;
+                        if(result.candidates[0].safetyRatings) {
+                            reason += ` Ratings de seguridad: ${JSON.stringify(result.candidates[0].safetyRatings)}`;
+                        }
+                    }
+                    return `<p>No se pudo generar un resumen para este autor. ${reason}</p>`;
+                }
+            } catch (error) {
+                 console.error("Error fetching from Gemini API:", error);
+                 throw new Error(`Error de comunicación con la API: ${error.message}`);
+            }
+        }
+
+        // --- Inicialización ---
+        window.onload = () => {
+            populateTheories();
+        };
+
+    </script>
+</body>
+</html>
